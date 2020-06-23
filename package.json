@@ -53,5 +53,8 @@
   "browser": {
     "request": false,
     "ws": false
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }
