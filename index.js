@@ -52,9 +52,14 @@ Web3ProviderEngine.prototype.start = function(cb = noop){
   // on new block, request block body and emit as events
   self._blockTracker.on('latest', (blockNumber) => {
     // get block body
-    self._getBlockByNumber(blockNumber, (err, block) => {
+    self._getBlockByNumberWithRetry(blockNumber, (err, block) => {
       if (err) {
         this.emit('error', err)
+        return
+      }
+      if (!block) {
+        console.log(block)
+        this.emit('error', new Error("Could not find block"))
         return
       }
       const bufferBlock = toBufferBlock(block)
@@ -128,6 +133,42 @@ Web3ProviderEngine.prototype.sendAsync = function(payload, cb){
 }
 
 // private
+
+Web3ProviderEngine.prototype._getBlockByNumberWithRetry = function(blockNumber, cb) {
+  const self = this
+
+  let retriesRemaining = 5
+
+  attemptRequest()
+  return
+
+  function attemptRequest () {
+    self._getBlockByNumber(blockNumber, afterRequest)
+  }
+
+  function afterRequest (err, block) {
+    // anomalous error occurred
+    if (err) return cb(err)
+    // block not ready yet
+    if (!block) {
+      if (retriesRemaining > 0) {
+        // wait 1s then try again
+        retriesRemaining--
+        setTimeout(function () {
+          attemptRequest()
+        }, 1000)
+        return
+      } else {
+        // give up, return a null block
+        cb(null, null)
+        return
+      }
+    }
+    // otherwise return result
+    cb(null, block)
+    return
+  }
+}
 
 Web3ProviderEngine.prototype._getBlockByNumber = function(blockNumber, cb) {
   const req = createPayload({ method: 'eth_getBlockByNumber', params: [blockNumber, false], skipCache: true })
