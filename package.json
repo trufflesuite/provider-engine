@@ -17,7 +17,7 @@
   "license": "MIT",
   "dependencies": {
     "@trufflesuite/eth-json-rpc-filters": "^4.1.2-1",
-    "@trufflesuite/eth-json-rpc-middleware": "^4.4.2-0",
+    "@trufflesuite/eth-json-rpc-middleware": "^4.4.2-1",
     "@trufflesuite/eth-sig-util": "^1.4.2",
     "async": "^2.5.0",
     "backoff": "^2.5.0",
