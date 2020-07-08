@@ -1,6 +1,6 @@
 {
   "name": "@trufflesuite/web3-provider-engine",
-  "version": "15.0.0-1",
+  "version": "15.0.0-2",
   "description": "Fork of https://github.com/MetaMask/web3-provider-engine",
   "repository": "https://github.com/trufflesuite/provider-engine",
   "main": "index.js",
