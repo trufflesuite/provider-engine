@@ -562,6 +562,15 @@ HookedWalletSubprovider.prototype.validateSender = function(senderAddress, cb){
 //
 // tx helpers
 //
+const callb = (error, result) => {
+  if (!!error) {
+    console.error(error)
+    return
+  }
+  if (!!result) {
+    console.log(result)
+  }
+}
 
 HookedWalletSubprovider.prototype.finalizeAndSubmitTx = function(txParams, cb) {
   const self = this
@@ -570,7 +579,7 @@ HookedWalletSubprovider.prototype.finalizeAndSubmitTx = function(txParams, cb) {
   self.nonceLock.take(function(){
     waterfall([
       self.fillInTxExtras.bind(self, txParams),
-      self.signTransaction.bind(self),
+      self.signTransaction.bind(self, txParams, callb),
       self.publishTransaction.bind(self),
     ], function(err, txHash){
       self.nonceLock.leave()
@@ -587,7 +596,7 @@ HookedWalletSubprovider.prototype.finalizeTx = function(txParams, cb) {
   self.nonceLock.take(function(){
     waterfall([
       self.fillInTxExtras.bind(self, txParams),
-      self.signTransaction.bind(self),
+      self.signTransaction.bind(self, txParams, callb),
     ], function(err, signedTx){
       self.nonceLock.leave()
       if (err) return cb(err)
