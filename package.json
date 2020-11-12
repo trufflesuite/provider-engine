@@ -1,6 +1,6 @@
 {
   "name": "@puremoney/web3-provider-engine",
-  "version": "15.0.13-x01",
+  "version": "15.0.13-x02",
   "description": "Fork of https://github.com/MetaMask/web3-provider-engine",
   "repository": {
     "type": "git",
