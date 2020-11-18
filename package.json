@@ -1,14 +1,17 @@
 {
-  "name": "@trufflesuite/web3-provider-engine",
-  "version": "15.0.13-1",
+  "name": "@puremoney/web3-provider-engine",
+  "version": "15.0.13-x04",
   "description": "Fork of https://github.com/MetaMask/web3-provider-engine",
-  "repository": "https://github.com/trufflesuite/provider-engine",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/puremoney/provider-engine"
+  },
   "main": "index.js",
   "scripts": {
     "test": "node test/index.js && yarn lint",
     "prepublishOnly": "yarn build && yarn bundle",
     "build": "babel zero.js index.js -d dist/es5 && babel subproviders -d dist/es5/subproviders && babel util -d dist/es5/util",
-    "bundle": "mkdir -p ./dist && yarn bundle-engine && yarn bundle-zero",
+    "bundle": "yarn bundle-engine && yarn bundle-zero",
     "bundle-zero": "browserify -s ZeroClientProvider -e zero.js -t [ babelify --presets [ @babel/preset-env ] ] > dist/ZeroClientProvider.js",
     "bundle-engine": "browserify -s ProviderEngine -e index.js -t [ babelify --presets [ @babel/preset-env ] ] > dist/ProviderEngine.js",
     "lint": "eslint --quiet --ignore-path .gitignore ."
@@ -22,8 +25,10 @@
     "@trufflesuite/eth-sig-util": "^1.4.2",
     "async": "^2.5.0",
     "backoff": "^2.5.0",
+    "bluebird": "^3.7.2",
     "clone": "^2.0.0",
     "cross-fetch": "^2.1.0",
+    "es6-promisify": "^6.1.1",
     "eth-block-tracker": "^4.4.2",
     "eth-json-rpc-errors": "^2.0.2",
     "ethereumjs-block": "^1.2.2",
@@ -31,7 +36,6 @@
     "ethereumjs-util": "^5.1.5",
     "ethereumjs-vm": "^2.3.4",
     "json-stable-stringify": "^1.0.1",
-    "promise-to-callback": "^1.0.0",
     "readable-stream": "^2.2.9",
     "request": "^2.85.0",
     "semaphore": "^1.0.3",
@@ -55,6 +59,7 @@
     "ws": false
   },
   "publishConfig": {
-    "access": "public"
+    "access": "public",
+    "registry": "https://npm.pkg.github.com/"
   }
 }

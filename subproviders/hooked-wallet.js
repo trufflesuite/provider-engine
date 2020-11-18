@@ -5,9 +5,8 @@
  * - getAccounts() -- array of addresses supported
  * - signTransaction(tx) -- sign a raw transaction object
  */
-
+const {promisify} = require("es6-promisify")
 const waterfall = require('async/waterfall')
-const parallel = require('async/parallel')
 const inherits = require('util').inherits
 const ethUtil = require('ethereumjs-util')
 const sigUtil = require('@trufflesuite/eth-sig-util')
@@ -50,7 +49,9 @@ module.exports = HookedWalletSubprovider
 //         signTransaction (perform the signature)
 //         publishTransaction (publish signed tx to network)
 //
-
+ 
+// Now uses Bluebird
+promisify.Promise = require("bluebird")
 
 inherits(HookedWalletSubprovider, Subprovider)
 
@@ -277,8 +278,8 @@ HookedWalletSubprovider.prototype.handleRequest = function(payload, next, end){
           data: message,
         })
         waterfall([
-          (cb) => self.validateTypedMessage(msgParams, cb),
-          (cb) => self.processTypedMessage(msgParams, cb),
+          (callb) => self.validateTypedMessage(msgParams, callb),
+          (callb) => self.processTypedMessage(msgParams, callb),
         ], end)
       })()
 
@@ -330,9 +331,9 @@ HookedWalletSubprovider.prototype.getAccounts = function(cb) {
 HookedWalletSubprovider.prototype.processTransaction = function(txParams, cb) {
   const self = this
   waterfall([
-    (cb) => self.approveTransaction(txParams, cb),
-    (didApprove, cb) => self.checkApproval('transaction', didApprove, cb),
-    (cb) => self.finalizeAndSubmitTx(txParams, cb),
+    (callb) => self.approveTransaction(txParams, callb),
+    (didApprove, callb) => self.checkApproval('transaction', didApprove, callb),
+    (callb) => self.finalizeAndSubmitTx(txParams, callb),
   ], cb)
 }
 
@@ -340,54 +341,54 @@ HookedWalletSubprovider.prototype.processTransaction = function(txParams, cb) {
 HookedWalletSubprovider.prototype.processSignTransaction = function(txParams, cb) {
   const self = this
   waterfall([
-    (cb) => self.approveTransaction(txParams, cb),
-    (didApprove, cb) => self.checkApproval('transaction', didApprove, cb),
-    (cb) => self.finalizeTx(txParams, cb),
+    (callb) => self.approveTransaction(txParams, callb),
+    (didApprove, callb) => self.checkApproval('transaction', didApprove, callb),
+    (callb) => self.finalizeTx(txParams, callb),
   ], cb)
 }
 
 HookedWalletSubprovider.prototype.processMessage = function(msgParams, cb) {
   const self = this
   waterfall([
-    (cb) => self.approveMessage(msgParams, cb),
-    (didApprove, cb) => self.checkApproval('message', didApprove, cb),
-    (cb) => self.signMessage(msgParams, cb),
+    (callb) => self.approveMessage(msgParams, callb),
+    (didApprove, callb) => self.checkApproval('message', didApprove, callb),
+    (callb) => self.signMessage(msgParams, callb),
   ], cb)
 }
 
 HookedWalletSubprovider.prototype.processPersonalMessage = function(msgParams, cb) {
   const self = this
   waterfall([
-    (cb) => self.approvePersonalMessage(msgParams, cb),
-    (didApprove, cb) => self.checkApproval('message', didApprove, cb),
-    (cb) => self.signPersonalMessage(msgParams, cb),
+    (callb) => self.approvePersonalMessage(msgParams, callb),
+    (didApprove, callb) => self.checkApproval('message', didApprove, callb),
+    (callb) => self.signPersonalMessage(msgParams, callb),
   ], cb)
 }
 
 HookedWalletSubprovider.prototype.processDecryptMessage = function(msgParams, cb) {
   const self = this
   waterfall([
-    (cb) => self.approveDecryptMessage(msgParams, cb),
-    (didApprove, cb) => self.checkApproval('decryptMessage', didApprove, cb),
-    (cb) => self.decryptMessage(msgParams, cb),
+    (callb) => self.approveDecryptMessage(msgParams, callb),
+    (didApprove, callb) => self.checkApproval('decryptMessage', didApprove, callb),
+    (callb) => self.decryptMessage(msgParams, callb),
   ], cb)
 }
 
 HookedWalletSubprovider.prototype.processEncryptionPublicKey = function(msgParams, cb) {
   const self = this
   waterfall([
-    (cb) => self.approveEncryptionPublicKey(msgParams, cb),
-    (didApprove, cb) => self.checkApproval('encryptionPublicKey', didApprove, cb),
-    (cb) => self.encryptionPublicKey(msgParams, cb),
+    (callb) => self.approveEncryptionPublicKey(msgParams, callb),
+    (didApprove, callb) => self.checkApproval('encryptionPublicKey', didApprove, callb),
+    (callb) => self.encryptionPublicKey(msgParams, callb),
   ], cb)
 }
 
 HookedWalletSubprovider.prototype.processTypedMessage = function(msgParams, cb) {
   const self = this
   waterfall([
-    (cb) => self.approveTypedMessage(msgParams, cb),
-    (didApprove, cb) => self.checkApproval('message', didApprove, cb),
-    (cb) => self.signTypedMessage(msgParams, cb),
+    (callb) => self.approveTypedMessage(msgParams, callb),
+    (didApprove, callb) => self.checkApproval('message', didApprove, callb),
+    (callb) => self.signTypedMessage(msgParams, callb),
   ], cb)
 }
 
@@ -400,7 +401,7 @@ HookedWalletSubprovider.prototype.autoApprove = function(txParams, cb) {
 }
 
 HookedWalletSubprovider.prototype.checkApproval = function(type, didApprove, cb) {
-  cb( didApprove ? null : new Error('User denied '+type+' signature.') )
+  cb( didApprove ? null : new Error('User denied '+type+' signature.'))
 }
 
 //
@@ -569,9 +570,9 @@ HookedWalletSubprovider.prototype.finalizeAndSubmitTx = function(txParams, cb) {
   // so we can atomically consume a nonce
   self.nonceLock.take(function(){
     waterfall([
-      self.fillInTxExtras.bind(self, txParams),
-      self.signTransaction.bind(self),
-      self.publishTransaction.bind(self),
+      (callb) => self.fillInTxExtras(txParams, callb),
+      (params, callb) => self.signTransaction(params, callb),
+      (params, callb) => self.publishTransaction(params, callb),
     ], function(err, txHash){
       self.nonceLock.leave()
       if (err) return cb(err)
@@ -586,8 +587,8 @@ HookedWalletSubprovider.prototype.finalizeTx = function(txParams, cb) {
   // so we can atomically consume a nonce
   self.nonceLock.take(function(){
     waterfall([
-      self.fillInTxExtras.bind(self, txParams),
-      self.signTransaction.bind(self),
+      (callb) => self.fillInTxExtras(txParams, callb),
+      (params, callb) => self.signTransaction(params, callb),
     ], function(err, signedTx){
       self.nonceLock.leave()
       if (err) return cb(err)
@@ -622,36 +623,46 @@ HookedWalletSubprovider.prototype.getGasPrice = function(cb) {
 
 HookedWalletSubprovider.prototype.fillInTxExtras = function(txParams, cb){
   const self = this
-  const address = txParams.from
-  // console.log('fillInTxExtras - address:', address)
+  const {from, gasPrice, nonce, gas} = txParams
 
-  const tasks = {}
-
-  if (txParams.gasPrice === undefined) {
-    // console.log("need to get gasprice")
-    tasks.gasPrice = self.getGasPrice.bind(self)
+  if (gasPrice && nonce && gas) {
+    cb(null, txParams)
+    return
   }
 
-  if (txParams.nonce === undefined) {
-    // console.log("need to get nonce")
-    tasks.nonce = self.emitPayload.bind(self, { method: 'eth_getTransactionCount', params: [address, 'pending'] })
-  }
+  let ta = new Array(3)
+  ta.push(!gasPrice ? 
+    promisify((cb) => self.getGasPrice(cb)) : 
+    Promise.resolve(gasPrice))
+  ta.push(!nonce ? 
+    promisify((cb) => self.emitPayload({ method: 'eth_getTransactionCount', 
+            params: [from, 'pending'] }, cb)) : 
+    Promise.resolve(nonce))
+  ta.push(!gas ? 
+    promisify((cb) => self.estimateGas(cloneTxParams(txParams), cb)) : 
+    Promise.resolve(gas))
+  
+  // do it all in parallel
+  Promise.all(ta).then(
+    (result) => {
+      result.map((p, i) => {
+        switch(i) {
+          case 0: txParams.gasPrice = !txParams.gasPrice ? p : txParams.gasPrice
+            break
+          case 1: txParams.nonce = !txParams.nonce ? p : txParams.nonce
+            break
+          case 2: txParams.gas = !txParams.gas ? p : txParams.gas
+            break
+          default:
+        }
+      })
+      cb(null, txParams)
+    },
+    (reason) => {
+      cb(reason)
+    }
+  )
 
-  if (txParams.gas === undefined) {
-    // console.log("need to get gas")
-    tasks.gas = self.estimateGas.bind(self, cloneTxParams(txParams))
-  }
-
-  parallel(tasks, function(err, taskResults) {
-    if (err) return cb(err)
-
-    const result = {}
-    if (taskResults.gasPrice) result.gasPrice = taskResults.gasPrice
-    if (taskResults.nonce) result.nonce = taskResults.nonce.result
-    if (taskResults.gas) result.gas = taskResults.gas
-
-    cb(null, extend(txParams, result))
-  })
 }
 
 // util
