@@ -14,8 +14,6 @@ const extend = require('xtend')
 const Semaphore = require('semaphore')
 const Subprovider = require('./subprovider.js')
 const estimateGas = require('../util/estimate-gas.js')
-const { map } = require("bluebird")
-const Bluebird = require("bluebird")
 const hexRegex = /^[0-9A-Fa-f]+$/g
 
 module.exports = HookedWalletSubprovider
@@ -118,10 +116,6 @@ HookedWalletSubprovider.prototype.handleRequest = function(payload, next, end){
         if (err) return end(err)
         end(null, accounts)
       })
-      return
-    
-    case 'eth_sendRawTransaction':
-      txParams = payload.params[0]
       return
 
     case 'eth_sendTransaction':
@@ -571,7 +565,6 @@ HookedWalletSubprovider.prototype.validateSender = function(senderAddress, cb){
 //
 
 HookedWalletSubprovider.prototype.finalizeAndSubmitTx = function(txParams, cb) {
-  console.log('finalizeAndSubmitTx')
   const self = this
   // can only allow one tx to pass through this flow at a time
   // so we can atomically consume a nonce
@@ -589,7 +582,6 @@ HookedWalletSubprovider.prototype.finalizeAndSubmitTx = function(txParams, cb) {
 }
 
 HookedWalletSubprovider.prototype.finalizeTx = function(txParams, cb) {
-  console.log('finalizeTx')
   const self = this
   // can only allow one tx to pass through this flow at a time
   // so we can atomically consume a nonce
@@ -606,7 +598,6 @@ HookedWalletSubprovider.prototype.finalizeTx = function(txParams, cb) {
 }
 
 HookedWalletSubprovider.prototype.publishTransaction = function(rawTx, cb) {
-  console.log('publishTransaction')
   const self = this
   self.emitPayload({
     method: 'eth_sendRawTransaction',
@@ -631,9 +622,13 @@ HookedWalletSubprovider.prototype.getGasPrice = function(cb) {
 }
 
 HookedWalletSubprovider.prototype.fillInTxExtras = function(txParams, cb){
-  console.log('fillInTxExtras')
   const self = this
   const {from, gasPrice, nonce, gas} = txParams
+
+  if (gasPrice && nonce && gas) {
+    cb(null, txParams)
+    return
+  }
 
   let ta = new Array(3)
   ta.push(!gasPrice ? 
@@ -652,11 +647,11 @@ HookedWalletSubprovider.prototype.fillInTxExtras = function(txParams, cb){
     (result) => {
       result.map((p, i) => {
         switch(i) {
-          case 0: txParams.gasPrice = p
+          case 0: txParams.gasPrice = !txParams.gasPrice ? p : txParams.gasPrice
             break
-          case 1: txParams.nonce = p
+          case 1: txParams.nonce = !txParams.nonce ? p : txParams.nonce
             break
-          case 2: txParams.gas = p
+          case 2: txParams.gas = !txParams.gas ? p : txParams.gas
             break
           default:
         }
