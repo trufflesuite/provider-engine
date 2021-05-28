@@ -74,12 +74,12 @@ function HookedWalletSubprovider(opts){
   self.approveEncryptionPublicKey = opts.approveEncryptionPublicKey || self.autoApprove
   self.approveTypedMessage = opts.approveTypedMessage || self.autoApprove
   // actually perform the signature
-  if (opts.signTransaction) self.signTransaction = opts.signTransaction  || mustProvideInConstructor('signTransaction')
-  if (opts.signMessage) self.signMessage = opts.signMessage  || mustProvideInConstructor('signMessage')
-  if (opts.signPersonalMessage) self.signPersonalMessage = opts.signPersonalMessage  || mustProvideInConstructor('signPersonalMessage')
-  if (opts.decryptMessage) self.decryptMessage = opts.decryptMessage  || mustProvideInConstructor('decryptMessage')
-  if (opts.encryptionPublicKey) self.encryptionPublicKey = opts.encryptionPublicKey  || mustProvideInConstructor('encryptionPublicKey')
-  if (opts.signTypedMessage) self.signTypedMessage = opts.signTypedMessage  || mustProvideInConstructor('signTypedMessage')
+  self.signTransaction = opts.signTransaction  || mustProvideInConstructor('signTransaction')
+  self.signMessage = opts.signMessage  || mustProvideInConstructor('signMessage')
+  self.signPersonalMessage = opts.signPersonalMessage  || mustProvideInConstructor('signPersonalMessage')
+  self.decryptMessage = opts.decryptMessage  || mustProvideInConstructor('decryptMessage')
+  self.encryptionPublicKey = opts.encryptionPublicKey  || mustProvideInConstructor('encryptionPublicKey')
+  self.signTypedMessage = opts.signTypedMessage  || mustProvideInConstructor('signTypedMessage')
   if (opts.recoverPersonalSignature) self.recoverPersonalSignature = opts.recoverPersonalSignature
   // publish to network
   if (opts.publishTransaction) self.publishTransaction = opts.publishTransaction
